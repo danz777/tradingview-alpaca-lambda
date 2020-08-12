@@ -1,13 +1,17 @@
 import requests, json
 from chalice import Chalice
 
-app = Chalice(app_name='buy_stock')
+app = Chalice(app_name='buy')
 
-API_KEY = 'Enter API Key'
-SECRET_KEY = 'Enter API Secret'
+API_KEY = 'Enter api key here'
+SECRET_KEY = 'Enter API Secret here'
 BASE_URL = "https://paper-api.alpaca.markets"
 ORDERS_URL = "{}/v2/orders".format(BASE_URL)
 HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
+
+@app.route('/')
+def index():
+    return {'hello': 'world'}
 
 @app.route('/buy_stock', methods=['POST'])
 def buy_stock():
@@ -22,10 +26,15 @@ def buy_stock():
         "limit_price": webhook_message['close'],
         "time_in_force": "gtc",
         "order_class": "bracket",
+        "take_profit": {
+            "limit_price": webhook_message['close'] * 2
+        },
+        "stop_loss": {
+            "stop_price": webhook_message['close'] * 0.95,
+        }
     }
 
     r = requests.post(ORDERS_URL, json=data, headers=HEADERS)
-
     response = json.loads(r.content) 
 
     return {
