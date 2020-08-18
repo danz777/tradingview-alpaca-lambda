@@ -1,11 +1,11 @@
 import requests, json
 from chalice import Chalice
 
-app = Chalice(app_name='buy')
+app = Chalice(app_name='buylive')
 
-API_KEY = 'Enter api key here'
-SECRET_KEY = 'Enter API Secret here'
-BASE_URL = "https://paper-api.alpaca.markets"
+API_KEY = 'apikey'
+SECRET_KEY = 'secretkey'
+BASE_URL = "https://api.alpaca.markets"
 ORDERS_URL = "{}/v2/orders".format(BASE_URL)
 HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
 
@@ -13,30 +13,22 @@ HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
 def index():
     return {'hello': 'world'}
 
-@app.route('/buy_stock', methods=['POST'])
-def buy_stock():
+@app.route('/buylive', methods=['POST'])
+def buylive():
     request = app.current_request
     webhook_message = request.json_body
-
+    
     data = {
         "symbol": webhook_message['ticker'],
-        "qty": 1,
-        "side": "buy",
-        "type": "limit",
-        "limit_price": webhook_message['close'],
-        "time_in_force": "gtc",
-        "order_class": "bracket",
-        "take_profit": {
-            "limit_price": webhook_message['close'] * 2
-        },
-        "stop_loss": {
-            "stop_price": webhook_message['close'] * 0.95,
-        }
+        "qty": '1',
+        "side": 'buy',
+        "type": 'market',
+        "time_in_force": 'gtc'
     }
-
+    
     r = requests.post(ORDERS_URL, json=data, headers=HEADERS)
-    response = json.loads(r.content) 
-
+    response = json.loads(r.content)
+        
     return {
         'webhook_message': webhook_message,
         'id': response['id'],
